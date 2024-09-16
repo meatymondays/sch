@@ -437,7 +437,7 @@ function VertueMethodCalendar() {
 
 export default function Component() {
   return (
-    <GoogleOAuthProvider clientId="178566756920-1c25r3g5ql8ogcd5da8adltc2tdnolc7.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <VertueMethodCalendar />
     </GoogleOAuthProvider>
   )
