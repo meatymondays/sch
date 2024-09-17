@@ -4,7 +4,6 @@ import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google'
 import { DndProvider, useDrag, useDrop } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import Confetti from 'react-confetti'
-import GoogleButton from './GoogleButton'
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const timeSlots = ['Early AM', 'Morning AM', 'Afternoon PM', 'Late PM']
@@ -123,7 +122,6 @@ const ProgramCarousel = ({ programs, handleProgramClick, programStatus, selected
 function VertueMethodCalendar() {
   const [calendar, setCalendar] = useState({})
   const [currentWeek, setCurrentWeek] = useState(0)
-  const [user, setUser] = useState(null)
   const [programStatus, setProgramStatus] = useState({})
   const [selectedProgram, setSelectedProgram] = useState(null)
   const [weeklyCalendars, setWeeklyCalendars] = useState({})
@@ -377,7 +375,7 @@ function VertueMethodCalendar() {
                 )}
               </span>
             </h2>
-            <p className="text-sm sm:text-xl text-white mt-2">Welcome back - set your workout, sign in and email yourself an invite!</p>
+            <p className="text-sm sm:text-xl text-white mt-2">Welcome back</p>
           </div>
         </div>
         <div className="flex-1 p-6 space-y-6">
@@ -398,7 +396,7 @@ function VertueMethodCalendar() {
         <div className="p-4 border-t border-gray-200 mt-4">
         <button
           onClick={() => login()}
-          className="relative flex items-center justify-center px-4 py-2 border border-transparent rounded-lg bg-white shadow-md hover:shadow-lg transition-shadow duration-300 mx-auto"
+          className="relative flex items-center justify-center px-4 py-2 border border-transparent rounded-lg bg-white shadow-md hover:shadow-lg transition-shadow duration-300"
         >
           <div className="absolute inset-0 rounded-lg bg-gray-200 opacity-50"></div>
           <div className="relative flex items-center">
