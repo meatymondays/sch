@@ -139,69 +139,43 @@ function VertueMethodCalendar() {
   }, [])
 
   const login = useGoogleLogin({
-    onSuccess: (codeResponse) => setUser(codeResponse),
-    onError: (error) => console.log('Login Failed:', error),
+    onSuccess: async (tokenResponse) => {
+      await sendCalendarInvite(tokenResponse.access_token);
+    },
     scope: 'https://www.googleapis.com/auth/calendar.events',
-  })
+  });
 
-  useEffect(() => {
-    if (user) {
-      fetch(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`, {
-        headers: {
-          Authorization: `Bearer ${user.access_token}`,
-          Accept: 'application/json'
-        }
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          console.log(data)
-        })
-        .catch((err) => console.log(err))
-    }
-  }, [user])
-
-  const handleDrop = (day, slot, programName) => {
-    setCalendar((prev) => {
-      const newCalendar = {
-        ...prev,
-        [day]: { ...prev[day], [slot]: programName },
-      }
-      setWeeklyCalendars((prevWeekly) => ({
-        ...prevWeekly,
-        [currentWeek]: newCalendar,
-      }))
-      return newCalendar
-    })
-    setProgramStatus((prev) => ({
-      ...prev,
-      [programName]: 'STARTED',
-    }))
-  }
-
-  const handleProgramClick = (programName) => {
-    setSelectedProgram(programName === selectedProgram ? null : programName)
-  }
-
-  const handleSlotClick = (day, slot) => {
-    if (selectedProgram) {
-      handleDrop(day, slot, selectedProgram)
-    }
-  }
-
-  const syncWithGoogleCalendar = async (accessToken) => {
+  const sendCalendarInvite = async (accessToken) => {
     if (!accessToken) {
-      console.log('No access token available')
-      return
+      console.error('No access token available');
+      return;
     }
 
-    console.log('Syncing with Google Calendar...')
+    await window.gapi.load('client', async () => {
+      window.gapi.client.setToken({ access_token: accessToken });
+      window.gapi.client.load('calendar', 'v3', async () => {
+        const events = createEventObjects();
+        for (const event of events) {
+          try {
+            const response = await window.gapi.client.calendar.events.insert({
+              calendarId: 'primary',
+              resource: event,
+            });
+            console.log('Event created:', response.result);
+          } catch (error) {
+            console.error('Error creating event:', error);
+          }
+        }
+        alert('Calendar invites sent!');
+      });
+    });
+  };
 
-    await new Promise((resolve) => window.gapi.load('client', resolve))
-
+  const createEventObjects = () => {
     const currentDate = new Date()
     const startOfWeek = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay() + 1))
 
-    const events = Object.entries(calendar).flatMap(([day, slots]) => 
+    return Object.entries(calendar).flatMap(([day, slots]) => 
       Object.entries(slots).map(([slot, programName]) => {
         if (!programName) return null
 
@@ -229,35 +203,6 @@ function VertueMethodCalendar() {
         }
       }).filter(Boolean)
     )
-
-    console.log('Events to sync:', events)
-
-    try {
-      for (const event of events) {
-        console.log('Attempting to create event:', event)
-        const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(event)
-        })
-        
-        const responseData = await response.json()
-        console.log('Response:', responseData)
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}, message: ${responseData.error?.message || 'Unknown error'}`)
-        }
-        
-        console.log('Event created successfully:', responseData)
-      }
-      alert('Calendar synced with Google Calendar!')
-    } catch (error) {
-      console.error('Error syncing with Google Calendar:', error)
-      alert(`Failed to sync with Google Calendar: ${error.message}`)
-    }
   }
 
   const getTimeFromSlot = (slot, isStart) => {
@@ -289,6 +234,40 @@ function VertueMethodCalendar() {
       setTimeout(() => setShowConfetti(false), 5000)
     }
   }
+
+  const handleDrop = (day, slot, programName) => {
+    setCalendar((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        [slot]: programName,
+      },
+    }));
+    setWeeklyCalendars((prev) => ({
+      ...prev,
+      [currentWeek]: {
+        ...prev[currentWeek],
+        [day]: {
+          ...(prev[currentWeek]?.[day] || {}),
+          [slot]: programName,
+        },
+      },
+    }));
+  };
+
+  const handleSlotClick = (day, slot) => {
+    if (selectedProgram) {
+      handleDrop(day, slot, selectedProgram);
+    }
+  };
+
+  const handleProgramClick = (programName) => {
+    setSelectedProgram(programName);
+    setProgramStatus((prev) => ({
+      ...prev,
+      [programName]: prev[programName] === 'STARTED' ? 'NOT STARTED' : 'STARTED',
+    }));
+  };
 
   const renderCalendar = () => (
     <div className="mt-4 bg-white rounded-lg shadow-md p-4">
@@ -397,7 +376,7 @@ function VertueMethodCalendar() {
                 )}
               </span>
             </h2>
-            <p className="text-sm sm:text-xl text-white mt-2">Welcome back</p>
+            <p className="text-sm sm:text-xl text-white mt-2">Welcome back - set your workout, sign in and email yourself an invite!</p>
           </div>
         </div>
         <div className="flex-1 p-6 space-y-6">
@@ -416,21 +395,12 @@ function VertueMethodCalendar() {
           </div>
         </div>
         <div className="p-4 border-t border-gray-200 mt-4">
-          {user ? (
-            <button
-              onClick={() => syncWithGoogleCalendar(user.access_token)}
-              className="w-full bg-blue-500 text-white py-2 px-4 rounded-full hover:bg-blue-600 transition duration-200"
-            >
-              Sync with Google Calendar
-            </button>
-          ) : (
-            <button
-              onClick={() => login()}
-              className="w-full bg-red-500 text-white py-2 px-4 rounded-full hover:bg-red-600 transition duration-200"
-            >
-              Sign in with Google
-            </button>
-          )}
+          <button
+            onClick={() => login()}
+            className="w-full bg-blue-500 text-white py-2 px-4 rounded-full hover:bg-blue-600 transition duration-200"
+          >
+            Send Calendar Invite
+          </button>
         </div>
         {showConfetti && <Confetti />}
       </div>
@@ -442,6 +412,16 @@ export default function Component() {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
       <VertueMethodCalendar />
+      <div className="text-center mt-4">
+        <a
+          href="https://shonavertue.com/en-au/policies/privacy-policy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-gray-600 hover:text-gray-800 underline"
+        >
+          Privacy Policy
+        </a>
+      </div>
     </GoogleOAuthProvider>
   )
 }
