@@ -196,13 +196,7 @@ function VertueMethodCalendar() {
 
     console.log('Syncing with Google Calendar...')
 
-    await new Promise((resolve) => gapi.load('client', resolve))
-
-    await gapi.client.init({
-      apiKey: process.env.REACT_APP_GOOGLE_API_KEY,
-      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],    })
-
-    gapi.client.setToken({ access_token: accessToken })
+    await new Promise((resolve) => window.gapi.load('client', resolve))
 
     const currentDate = new Date()
     const startOfWeek = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay() + 1))
@@ -241,12 +235,23 @@ function VertueMethodCalendar() {
     try {
       for (const event of events) {
         console.log('Attempting to create event:', event)
-        const response = await gapi.client.calendar.events.insert({
-          calendarId: 'primary',
-          resource: event,
+        const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(event)
         })
         
-        console.log('Event created successfully:', response.result)
+        const responseData = await response.json()
+        console.log('Response:', responseData)
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}, message: ${responseData.error?.message || 'Unknown error'}`)
+        }
+        
+        console.log('Event created successfully:', responseData)
       }
       alert('Calendar synced with Google Calendar!')
     } catch (error) {
@@ -439,5 +444,4 @@ export default function Component() {
       <VertueMethodCalendar />
     </GoogleOAuthProvider>
   )
-}
 }
