@@ -431,12 +431,12 @@ export default function Component() {
       <VertueMethodCalendar />
       <div className="text-center mt-4">
         <a
-          href="https://shonavertue.com/en-au/policies/privacy-policy"
+          href="https://shonavertue.com/en-au/pages/vm-scheduler-terms-and-privacy"
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm text-gray-600 hover:text-gray-800 underline"
         >
-          Privacy Policy
+          Privacy Policy and Terms of Service
         </a>
       </div>
     </GoogleOAuthProvider>
