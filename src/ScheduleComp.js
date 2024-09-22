@@ -139,80 +139,29 @@ function VertueMethodCalendar() {
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      await sendCalendarInvite(tokenResponse.access_token);
-    },
-    scope: 'https://www.googleapis.com/auth/calendar.events',
-  });
-
-  const sendCalendarInvite = async (accessToken) => {
-    if (!accessToken) {
-      console.error('No access token available');
-      return;
-    }
-
-    await window.gapi.load('client', async () => {
-      window.gapi.client.setToken({ access_token: accessToken });
-      window.gapi.client.load('calendar', 'v3', async () => {
-        const events = createEventObjects();
-        for (const event of events) {
-          try {
-            const response = await window.gapi.client.calendar.events.insert({
-              calendarId: 'primary',
-              resource: event,
-            });
-            console.log('Event created:', response.result);
-          } catch (error) {
-            console.error('Error creating event:', error);
-          }
-        }
-        alert('Calendar invites sent!');
-      });
-    });
-  };
-
-  const createEventObjects = () => {
-    const currentDate = new Date()
-    const startOfWeek = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay() + 1))
-
-    return Object.entries(calendar).flatMap(([day, slots]) => 
-      Object.entries(slots).map(([slot, programName]) => {
-        if (!programName) return null
-
-        const program = programs.find(p => p.name === programName)
-        if (!program) return null
-
-        const dayIndex = days.indexOf(day)
-        const eventDate = new Date(startOfWeek)
-        eventDate.setDate(eventDate.getDate() + dayIndex)
-
-        const startTime = getTimeFromSlot(slot, true)
-        const endTime = getTimeFromSlot(slot, false)
-
-        return {
-          'summary': program.fullName,
-          'description': program.description,
-          'start': {
-            'dateTime': `${eventDate.toISOString().split('T')[0]}T${startTime}:00`,
-            'timeZone': Intl.DateTimeFormat().resolvedOptions().timeZone
+      try {
+        const response = await fetch('/api/create-calendar-event', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-          'end': {
-            'dateTime': `${eventDate.toISOString().split('T')[0]}T${endTime}:00`,
-            'timeZone': Intl.DateTimeFormat().resolvedOptions().timeZone
-          }
-        }
-      }).filter(Boolean)
-    )
-  }
+          body: JSON.stringify({ code: tokenResponse.code }),
+        });
 
-  const getTimeFromSlot = (slot, isStart) => {
-    switch(slot) {
-      case 'Early AM': return isStart ? '06:00' : '08:00'
-      case 'Morning AM': return isStart ? '09:00' : '11:00'
-      case 'Afternoon PM': return isStart ? '14:00' : '16:00'
-      case 'Late PM': return isStart ? '18:00' : '20:00'
-      default: return isStart ? '12:00' : '13:00'
-    }
-  }
+        if (!response.ok) {
+          throw new Error('Failed to create event');
+        }
+
+        const result = await response.json();
+        console.log('Event created:', result.eventId);
+        alert('Calendar event created successfully!');
+      } catch (error) {
+        console.error('Error creating calendar event:', error);
+        alert('Failed to create calendar event. Please try again.');
+      }
+    },
+    flow: 'auth-code',
+  });
 
   const handleNameClick = () => {
     setIsEditing(true)
