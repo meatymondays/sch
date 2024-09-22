@@ -436,7 +436,7 @@ export default function Component() {
           rel="noopener noreferrer"
           className="text-sm text-gray-600 hover:text-gray-800 underline"
         >
-          Privacy Policy
+          Privacy Policy and Terms of Service
         </a>
       </div>
     </GoogleOAuthProvider>
