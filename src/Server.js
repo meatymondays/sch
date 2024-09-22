@@ -1,52 +1,50 @@
 const express = require('express');
 const { google } = require('googleapis');
 const dotenv = require('dotenv');
+const cors = require('cors');
+const { OAuth2Client } = require('google-auth-library');
 
 dotenv.config();
 
 const app = express();
+app.use(cors({
+  origin: 'http://localhost:3001',
+  credentials: true,
+}));
 app.use(express.json());
 
-const oauth2Client = new google.auth.OAuth2(
+const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  process.env.GOOGLE_REDIRECT_URI
+  'http://localhost:5000/api/auth/google/callback'
 );
 
-app.post('/api/create-calendar-event', async (req, res) => {
-  const { code } = req.body;
+// Add a new endpoint to initiate the OAuth flow
+app.get('/api/auth/google', (req, res) => {
+  const authUrl = client.generateAuthUrl({
+    access_type: 'offline',
+    scope: ['https://www.googleapis.com/auth/calendar.events'],
+    redirect_uri: 'http://localhost:5000/api/auth/google/callback'
+  });
+  res.redirect(authUrl);
+});
 
+// Add a callback endpoint for Google to redirect to after authentication
+app.get('/api/auth/google/callback', async (req, res) => {
+  const { code } = req.query;
   try {
-    const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
+    const { tokens } = await client.getToken(code);
+    client.setCredentials(tokens);
+    
+    // Here, you'd typically save the tokens to your database
+    // associated with the user's session
 
-    const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-
-    const event = {
-      summary: 'Test Event',
-      location: 'Online',
-      description: 'This is a test event created by the app.',
-      start: {
-        dateTime: '2023-06-03T09:00:00-07:00',
-        timeZone: 'America/Los_Angeles',
-      },
-      end: {
-        dateTime: '2023-06-03T17:00:00-07:00',
-        timeZone: 'America/Los_Angeles',
-      },
-    };
-
-    const result = await calendar.events.insert({
-      calendarId: 'primary',
-      resource: event,
-    });
-
-    res.json({ success: true, eventId: result.data.id });
+    res.redirect('http://localhost:3001/auth-success');
   } catch (error) {
-    console.error('Error creating calendar event:', error);
-    res.status(500).json({ success: false, error: 'Failed to create calendar event' });
+    console.error('Error getting tokens:', error);
+    res.redirect('http://localhost:3001/auth-error');
   }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -140,25 +140,29 @@ function VertueMethodCalendar() {
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const response = await fetch('/api/create-calendar-event', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ code: tokenResponse.code }),
+        console.log('Token response:', tokenResponse);
+        const response = await fetch('/api/auth/google', {
+          method: 'GET',
+          credentials: 'include',
         });
 
+        console.log('Response status:', response.status);
+        const responseText = await response.text();
+        console.log('Response text:', responseText);
+
         if (!response.ok) {
-          throw new Error('Failed to create event');
+          throw new Error(`Failed to initiate Google login: ${response.status} ${responseText}`);
         }
 
-        const result = await response.json();
-        console.log('Event created:', result.eventId);
-        alert('Calendar event created successfully!');
+        console.log('Redirecting to Google login...');
       } catch (error) {
-        console.error('Error creating calendar event:', error);
-        alert('Failed to create calendar event. Please try again.');
+        console.error('Error initiating Google login:', error);
+        alert(`Failed to start Google login. Error: ${error.message}`);
       }
+    },
+    onError: (error) => {
+      console.error('Google Login Error:', error);
+      alert(`Google Login Error: ${error.message}`);
     },
     flow: 'auth-code',
   });
