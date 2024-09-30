@@ -4,6 +4,7 @@ import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google'
 import { DndProvider, useDrag, useDrop } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import Confetti from 'react-confetti'
+import SnapshotButton from './Snapshot'
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const timeSlots = ['Early AM', 'Morning AM', 'Afternoon PM', 'Late PM']
@@ -368,8 +369,19 @@ function VertueMethodCalendar() {
               </svg>
             </div>
             <span className="text-sm font-medium text-gray-800">Continue with Google</span>
+          
+            {/* <button
+              onClick={this.takeSnapshot}
+              className="relative flex items-center justify-center px-4 py-2 border border-transparent rounded-lg bg-white shadow-md hover:shadow-lg transition-shadow duration-300 ml-4"
+            >
+              <div className="absolute inset-0 rounded-lg bg-gray-200 opacity-50"></div>
+              <div className="relative flex items-center">
+                <span className="text-sm font-medium text-gray-800">Take Snapshot</span>
+              </div>
+            </button> */}
           </div>
         </button>
+        <SnapshotButton />
           
         </div>
         {showConfetti && <Confetti />}

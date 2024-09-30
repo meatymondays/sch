@@ -1,16 +1,19 @@
-const express = require('express');
-const { google } = require('googleapis');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const { OAuth2Client } = require('google-auth-library');
+import express from 'express';
+import { google } from 'googleapis';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import { OAuth2Client } from 'google-auth-library';
 
 dotenv.config();
 
 const app = express();
+
+// Configure CORS to allow requests from your frontend application
 app.use(cors({
-  origin: 'http://localhost:3001',
-  credentials: true,
+  origin: 'http://localhost:3001', // Replace with your frontend application's URL
+  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
 }));
+
 app.use(express.json());
 
 const client = new OAuth2Client(
@@ -18,6 +21,11 @@ const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_SECRET,
   'http://localhost:5000/api/auth/google/callback'
 );
+
+// Define a route to handle GET requests to the root URL
+app.get('/', (req, res) => {
+  res.send('Welcome to the Express server!');
+});
 
 // Add a new endpoint to initiate the OAuth flow
 app.get('/api/auth/google', (req, res) => {
