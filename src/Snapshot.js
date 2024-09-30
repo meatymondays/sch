@@ -1,76 +1,56 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import html2canvas from 'html2canvas';
+import ScheduleComp from './ScheduleComp';  // Adjust this import path as needed
 
 class SnapshotButton extends React.Component {
   takeSnapshot = () => {
-    // Create a container for our desktop version of the calendar
+    // Create a container for our landscape version
     const container = document.createElement('div');
     container.style.position = 'absolute';
     container.style.left = '-9999px';
-    container.style.width = '1024px';
+    container.style.width = '1024px';  // Force a width larger than 765px
+    container.style.height = 'auto';
     document.body.appendChild(container);
 
-    // Get the original calendar element
-    const originalCalendar = document.querySelector('.mt-4.bg-white.rounded-lg.shadow-md.p-4');
-
-    if (originalCalendar) {
-      // Clone the calendar element
-      const calendarClone = originalCalendar.cloneNode(true);
-      
-      // Force desktop styles
-      calendarClone.style.width = '1024px';
-      
-      // Show desktop grid and hide mobile view
-      const desktopGrid = calendarClone.querySelector('.hidden.md\\:grid');
-      if (desktopGrid) {
-        desktopGrid.classList.remove('hidden');
-        desktopGrid.style.display = 'grid';
-      }
-      
-      const mobileView = calendarClone.querySelector('.md\\:hidden');
-      if (mobileView) {
-        mobileView.style.display = 'none';
-      }
-      
-      // Append the clone to the container
-      container.appendChild(calendarClone);
-
-      // Force a reflow to ensure styles are applied
-      void container.offsetWidth;
-
-      // Capture the snapshot
-      html2canvas(calendarClone, { 
-        scale: 2,
-        width: 1024,
-        height: calendarClone.offsetHeight,
-        onclone: (clonedDoc) => {
-          const clonedCalendar = clonedDoc.querySelector('.mt-4.bg-white.rounded-lg.shadow-md.p-4');
-          if (clonedCalendar) {
-            clonedCalendar.style.width = '1024px';
-            const clonedDesktopGrid = clonedCalendar.querySelector('.md\\:grid');
-            if (clonedDesktopGrid) {
-              clonedDesktopGrid.classList.remove('hidden');
-              clonedDesktopGrid.style.display = 'grid';
-            }
-            const clonedMobileView = clonedCalendar.querySelector('.md\\:hidden');
-            if (clonedMobileView) {
-              clonedMobileView.style.display = 'none';
-            }
-          }
-        }
-      }).then(canvas => {
-        const link = document.createElement('a');
-        link.href = canvas.toDataURL('image/png');
-        link.download = 'calendar_snapshot.png';
-        link.click();
+    // Render the landscape version of the ScheduleComp
+    ReactDOM.render(
+      <ScheduleComp forceDesktop={true} />,
+      container,
+      () => {
+        // After rendering, find the calendar element within the rendered component
+        const calendarElement = container.querySelector('.mt-4.bg-white.rounded-lg.shadow-md.p-4');
         
-        // Clean up
-        document.body.removeChild(container);
-      });
-    } else {
-      console.error('Calendar element not found');
-    }
+        if (calendarElement) {
+          // Ensure landscape view is shown
+          const landscapeView = calendarElement.querySelector('.md\\:grid');
+          if (landscapeView) {
+            landscapeView.style.display = 'grid';
+            landscapeView.style.paddingBottom = '20px';  // Add padding to the bottom
+          }
+
+          // Capture the snapshot of the landscape view only
+          html2canvas(landscapeView, { 
+            scale: 2,
+            width: 1024,
+            height: landscapeView.offsetHeight
+          }).then(canvas => {
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = 'calendar_snapshot.png';
+            link.click();
+            
+            // Clean up
+            ReactDOM.unmountComponentAtNode(container);
+            document.body.removeChild(container);
+          });
+        } else {
+          console.error('Calendar element not found in rendered component');
+          ReactDOM.unmountComponentAtNode(container);
+          document.body.removeChild(container);
+        }
+      }
+    );
   };
 
   render() {

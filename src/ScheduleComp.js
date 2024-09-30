@@ -120,8 +120,18 @@ const ProgramCarousel = ({ programs, handleProgramClick, programStatus, selected
   );
 };
 
-function VertueMethodCalendar() {
-  const [calendar, setCalendar] = useState({})
+const ScheduleComp = ({ forceDesktop }) => {
+  const [calendar, setCalendar] = useState(() => {
+    // Initialize from localStorage or default to an empty object
+    const savedCalendar = localStorage.getItem('calendar');
+    return savedCalendar ? JSON.parse(savedCalendar) : {};
+  });
+
+  // Save to localStorage whenever calendar changes
+  useEffect(() => {
+    localStorage.setItem('calendar', JSON.stringify(calendar));
+  }, [calendar]);
+
   const [currentWeek, setCurrentWeek] = useState(0)
   const [programStatus, setProgramStatus] = useState({})
   const [selectedProgram, setSelectedProgram] = useState(null)
@@ -247,7 +257,8 @@ function VertueMethodCalendar() {
           }}
         />
       </div>
-      <div className="hidden md:grid md:grid-cols-7 gap-2">
+      {/* Landscape view (above 765px or forceDesktop) */}
+      <div className={`${forceDesktop ? '' : 'hidden md:grid'} grid-cols-7 gap-2`}>
         {days.map((day) => (
           <div key={day} className="text-center font-medium text-gray-700 text-sm">
             {day}
@@ -267,33 +278,36 @@ function VertueMethodCalendar() {
           </div>
         ))}
       </div>
-      <div className="md:hidden space-y-4">
-        {days.map((day) => (
-          <div key={day} className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="text-center font-medium text-gray-700 text-lg py-2 bg-gray-100">
-              {day}
+      {/* Portrait view (below 766px and not forceDesktop) */}
+      {!forceDesktop && (
+        <div className="md:hidden space-y-4">
+          {days.map((day) => (
+            <div key={day} className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="text-center font-medium text-gray-700 text-lg py-2 bg-gray-100">
+                {day}
+              </div>
+              <div className="border-t">
+                {timeSlots.map((slot) => (
+                  <CalendarSlot
+                    key={slot}
+                    day={day}
+                    slot={slot}
+                    program={calendar[day]?.[slot]}
+                    onClick={handleSlotClick}
+                    isMobile={true}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="border-t">
-              {timeSlots.map((slot) => (
-                <CalendarSlot
-                  key={slot}
-                  day={day}
-                  slot={slot}
-                  program={calendar[day]?.[slot]}
-                  onClick={handleSlotClick}
-                  isMobile={true}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="max-w-7xl mx-auto bg-gray-100 min-h-screen flex flex-col">
+      <div className={`max-w-7xl mx-auto bg-gray-100 min-h-screen flex flex-col ${forceDesktop ? 'w-[1024px]' : ''}`}>
         <div className="relative h-60 sm:h-80">
           <img
             src="/images1/hero.jpg'"
@@ -332,18 +346,20 @@ function VertueMethodCalendar() {
             <p className="text-sm sm:text-xl text-white mt-2">Welcome back</p>
           </div>
         </div>
-        <div className="flex-1 p-6 space-y-6">
+        <div className={`flex-1 p-6 space-y-6 ${forceDesktop ? 'w-full' : ''}`}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">PLAN YOUR WEEK</h2>
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <ProgramCarousel
-              programs={programs}
-              handleProgramClick={handleProgramClick}
-              programStatus={programStatus}
-              selectedProgram={selectedProgram}
-              isMobile={isMobile}
-            />
-          </div>
-          <div className="h-[calc(100vh-450px)] overflow-y-auto md:h-auto">
+          {!forceDesktop && (
+            <div className="bg-white rounded-lg shadow-md p-4">
+              <ProgramCarousel
+                programs={programs}
+                handleProgramClick={handleProgramClick}
+                programStatus={programStatus}
+                selectedProgram={selectedProgram}
+                isMobile={isMobile}
+              />
+            </div>
+          )}
+          <div className={`${isMobile && !forceDesktop ? 'h-[calc(100vh-450px)] overflow-y-auto' : 'h-auto'}`}>
             {renderCalendar()}
           </div>
         </div>
@@ -393,7 +409,7 @@ function VertueMethodCalendar() {
 export default function Component() {
   return (
     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID}>
-      <VertueMethodCalendar />
+      <ScheduleComp />
       <div className="text-center mt-4">
         <a
           href="https://shonavertue.com/en-au/policies/privacy-policy"
