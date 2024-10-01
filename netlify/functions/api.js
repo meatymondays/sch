@@ -36,9 +36,9 @@ app.get("/api/auth/google", (req, res) => {
 app.get("/api/auth/google/callback", async (req, res) => {
   const { code } = req.query;
   try {
-    console.log(process.env);
-    const { tokens } = await client.getToken(code);
-    client.setCredentials(tokens);
+    // console.log(process.env);
+    // const { tokens } = await client.getToken(code);
+    // client.setCredentials(tokens);
 
     // Here, you'd typically save the tokens to your database
     // associated with the user's session
