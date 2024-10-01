@@ -34,7 +34,7 @@ app.get("/api/auth/google", (req, res) => {
 
 // Add a callback endpoint for Google to redirect to after authentication
 app.get("/api/auth/google/callback", async (req, res) => {
-  const { code } = req.query;
+  console.log("Inside callback");
   try {
     // console.log(process.env);
     // const { tokens } = await client.getToken(code);
