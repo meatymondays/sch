@@ -17,9 +17,9 @@ app.use(
 app.use(express.json());
 
 const client = new OAuth2Client(
-  dotenv.parsed.GOOGLE_CLIENT_ID,
-  dotenv.parsed.GOOGLE_CLIENT_SECRET,
-  dotenv.parsed.GOOGLE_CLIENT_CALLBACK_URL
+  dotenv.parsed.REACT_APP_GOOGLE_CLIENT_ID,
+  dotenv.parsed.REACT_APP_GOOGLE_CLIENT_SECRET,
+  dotenv.parsed.REACT_APP_GOOGLE_CLIENT_CALLBACK_URL
 );
 
 // Add a new endpoint to initiate the OAuth flow
@@ -27,7 +27,7 @@ app.get("/api/auth/google", (req, res) => {
   const authUrl = client.generateAuthUrl({
     access_type: "offline",
     scope: ["https://www.googleapis.com/auth/calendar.events"],
-    redirect_uri: dotenv.parsed.GOOGLE_CLIENT_CALLBACK_URL,
+    redirect_uri: dotenv.parsed.REACT_APP_GOOGLE_CLIENT_CALLBACK_URL,
   });
   res.redirect(authUrl);
 });
