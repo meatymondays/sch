@@ -1,50 +1,55 @@
-const express = require('express');
-const { google } = require('googleapis');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const { OAuth2Client } = require('google-auth-library');
+import ServerlessHttp from "serverless-http";
+
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import { OAuth2Client } from "google-auth-library";
 
 dotenv.config();
 
 const app = express();
-app.use(cors({
-  origin: 'http://localhost:3001',
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: "http://localhost:3001",
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 const client = new OAuth2Client(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  'http://localhost:5000/api/auth/google/callback'
+  dotenv.parsed.GOOGLE_CLIENT_ID,
+  dotenv.parsed.GOOGLE_CLIENT_SECRET,
+  dotenv.parsed.GOOGLE_CLIENT_CALLBACK_URL
 );
 
 // Add a new endpoint to initiate the OAuth flow
-app.get('/api/auth/google', (req, res) => {
+app.get("/api/auth/google", (req, res) => {
   const authUrl = client.generateAuthUrl({
-    access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/calendar.events'],
-    redirect_uri: 'http://localhost:5000/api/auth/google/callback'
+    access_type: "offline",
+    scope: ["https://www.googleapis.com/auth/calendar.events"],
+    redirect_uri: dotenv.parsed.GOOGLE_CLIENT_CALLBACK_URL,
   });
   res.redirect(authUrl);
 });
 
 // Add a callback endpoint for Google to redirect to after authentication
-app.get('/api/auth/google/callback', async (req, res) => {
+app.get("/api/auth/google/callback", async (req, res) => {
   const { code } = req.query;
   try {
     const { tokens } = await client.getToken(code);
     client.setCredentials(tokens);
-    
+
     // Here, you'd typically save the tokens to your database
     // associated with the user's session
 
-    res.redirect('http://localhost:3001/auth-success');
+    res.redirect("/auth-success");
   } catch (error) {
-    console.error('Error getting tokens:', error);
-    res.redirect('http://localhost:3001/auth-error');
+    console.error("Error getting tokens:", error);
+    res.redirect("/auth-error");
   }
 });
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+export const handler = ServerlessHttp(app);
