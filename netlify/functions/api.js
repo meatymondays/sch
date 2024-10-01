@@ -35,7 +35,19 @@ app.get("/api/auth/google", (req, res) => {
 // Add a callback endpoint for Google to redirect to after authentication
 app.get("/api/auth/google/callback", async (req, res) => {
   const { code } = req.query;
-  try {
+
+  console.log(
+    "process.env.REACT_APP_GOOGLE_CLIENT_ID:",
+    process.env.REACT_APP_GOOGLE_CLIENT_ID
+  );
+  console.log(
+    "process.env.REACT_APP_GOOGLE_CLIENT_SECRET:",
+    process.env.REACT_APP_GOOGLE_CLIENT_SECRET
+  );
+  console.log(
+    "process.env.REACT_APP_GOOGLE_CLIENT_CALLBACK_URL:",
+    process.env.REACT_APP_GOOGLE_CLIENT_CALLBACK_URL
+  );
     const { tokens } = await client.getToken(code);
     client.setCredentials(tokens);
 
