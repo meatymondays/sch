@@ -171,8 +171,10 @@ function VertueMethodCalendar() {
   const login = async () => {
     try {
       const response = await fetch("/api/auth/google", {
-        method: "GET",
-        credentials: "include",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) {
@@ -180,8 +182,10 @@ function VertueMethodCalendar() {
           `Failed to initiate Google login: ${response.status} ${response.statusText}`
         );
       }
+      const data = await response.json();
+      const authUrl = data.authUrl;
 
-      window.location.href = response.url;
+      window.location.href = authUrl;
     } catch (error) {
       console.error("Error initiating Google login:", error);
       alert(`Failed to start Google login. Error: ${error.message}`);

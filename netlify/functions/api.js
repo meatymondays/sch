@@ -27,15 +27,14 @@ const client = new OAuth2Client(
 );
 
 // Add a new endpoint to initiate the OAuth flow
-app.get("/api/auth/google", (req, res) => {
+app.post("/api/auth/google", (req, res) => {
   const authUrl = client.generateAuthUrl({
     access_type: "offline",
     scope: ["https://www.googleapis.com/auth/calendar.events"],
     redirect_uri: process.env.REACT_APP_GOOGLE_CLIENT_CALLBACK_URL,
   });
-  res.json({ url: authUrl });
+  res.json({ authUrl });
 });
-
 // Add a callback endpoint for Google to redirect to after authentication
 app.get("/api/auth/google/callback", async (req, res) => {
   console.log("Inside callback");
