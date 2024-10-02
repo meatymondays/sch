@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { GoogleOAuthProvider, useGoogleLogin } from "@react-oauth/google";
+import React, { useEffect, useState } from "react";
+import Confetti from "react-confetti";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import Confetti from "react-confetti";
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const timeSlots = ["Early AM", "Morning AM", "Afternoon PM", "Late PM"];
