@@ -181,7 +181,7 @@ function VertueMethodCalendar() {
         );
       }
 
-      window.location.href = `${baseUrl}/auth/google`;
+      window.location.href = response.url;
     } catch (error) {
       console.error("Error initiating Google login:", error);
       alert(`Failed to start Google login. Error: ${error.message}`);
