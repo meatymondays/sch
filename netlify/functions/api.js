@@ -12,6 +12,10 @@ app.use(
   cors({
     origin: "*",
     credentials: true,
+    optionsSuccessStatus: 200,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    preflightContinue: false,
   })
 );
 app.use(express.json());
@@ -29,7 +33,7 @@ app.get("/api/auth/google", (req, res) => {
     scope: ["https://www.googleapis.com/auth/calendar.events"],
     redirect_uri: process.env.REACT_APP_GOOGLE_CLIENT_CALLBACK_URL,
   });
-  res.redirect(authUrl);
+  res.json({ url: authUrl });
 });
 
 // Add a callback endpoint for Google to redirect to after authentication

@@ -175,15 +175,27 @@ function VertueMethodCalendar() {
         credentials: "include",
       });
 
-      console.log({ response });
-
       if (!response.ok) {
         throw new Error(
           `Failed to initiate Google login: ${response.status} ${response.statusText}`
         );
       }
 
-      // Handle the response from your API endpoint
+      const authUrl = response.url;
+      const width = 600;
+      const height = 600;
+      const left = (window.outerWidth - width) / 2;
+      const top = (window.outerHeight - height) / 2;
+      const params = `width=${width},height=${height},left=${left},top=${top}`;
+      const popup = window.open(authUrl, "google-auth", params);
+
+      // Handle the authorization code returned by Google
+      const intervalId = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(intervalId);
+          // Handle the authorization code here
+        }
+      }, 1000);
     } catch (error) {
       console.error("Error initiating Google login:", error);
       alert(`Failed to start Google login. Error: ${error.message}`);
