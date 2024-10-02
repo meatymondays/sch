@@ -46,10 +46,10 @@ app.get("/api/auth/google/callback", async (req, res) => {
     // Here, you'd typically save the tokens to your database
     // associated with the user's session
 
-    res.redirect("/auth-success");
+    res.redirect("/");
   } catch (error) {
     console.error("Error getting tokens:", error);
-    res.redirect("/auth-error");
+    res.redirect("/");
   }
 });
 
