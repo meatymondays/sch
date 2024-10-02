@@ -175,6 +175,8 @@ function VertueMethodCalendar() {
         credentials: "include",
       });
 
+      console.log({ response });
+
       if (!response.ok) {
         throw new Error(
           `Failed to initiate Google login: ${response.status} ${response.statusText}`
